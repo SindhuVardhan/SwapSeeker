@@ -22,19 +22,19 @@ include "includes/header.php";
                         </div>
                         <div class="control-group">
                             <select class="form-control" id="category" required="required" name="category" data-validation-required-message="Please choose a category">
-                                <option value="" disabled selected>Choose Category</option>
-                                <option value="SmartPhones">SmartPhones</option>
-                                <option value="Property">Property</option>
-                                <option value="AutoMobiles">AutoMobiles</option>
-                                <option value="HomeAppliances">HomeAppliances</option>
-                                <option value="Computers">Computers</option>
-                                <option value="Cameras">Cameras</option>
-                                <option value="Old_is_Gold">Old_is_Gold</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Toys">Toys</option>
-                                <option value="Gaming">Gaming</option>
-                                <option value="Cosmetics">Cosmetics</option>
-                                <option value="Fashion">Fashion</option>
+                                <option>Choose Category</option>
+                                <option data-thumbnail="img/phone.png" value="SmartPhones">SmartPhones</option>
+                                <option data-thumbnail="img/phone.png">Property</option>
+                                <option data-thumbnail="img/phone.png">AutoMobiles</option>
+                                <option data-thumbnail="img/phone.png">HomeAppliances</option>
+                                <option data-thumbnail="img/phone.png">Computers</option>
+                                <option data-thumbnail="img/phone.png">Cameras</option>
+                                <option data-thumbnail="img/phone.png">Old_is_Gold</option>
+                                <option data-thumbnail="img/phone.png">Electronics</option>
+                                <option data-thumbnail="img/phone.png">Toys</option>
+                                <option data-thumbnail="img/phone.png">Gaming</option>
+                                <option data-thumbnail="img/phone.png">Cosmetics</option>
+                                <option data-thumbnail="img/phone.png">Fashion</option>
                             </select>
                             <p class="help-block text-danger"></p>
                         </div>
@@ -142,7 +142,7 @@ include "includes/header.php";
 
         </form>
         </div>
-        <script src="js/script.js"></script>
+        
     </div>
     <!-- Contact End -->
 
@@ -153,11 +153,14 @@ include "includes/header.php";
     <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
 
+
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+    <script data-src="https://unpkg.com/popper.js@1.14.7/dist/popper.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-select@1.13.8/dist/js/bootstrap-select.min.js"></script>
 
     <!-- Contact Javascript File -->
     <script src="mail/jqBootstrapValidation.min.js"></script>
@@ -165,9 +168,27 @@ include "includes/header.php";
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
-    
     <script src="js/script.js"></script>
+
     <script>
+        const BASE_URL = "http://localhost/swapseeker/";
+
+        const $_SELECT_PICKER = $('#category');
+
+        
+        $('#category').find('option').each((idx, elem) => {
+            const $OPTION = $(elem);
+            const IMAGE_URL = $OPTION.attr('data-thumbnail');
+
+            if (IMAGE_URL) {
+                $OPTION.attr('data-content', "<img style='width:50px;height:50px;magin-right:10px;' src='%i'/> %s".replace(/%i/, BASE_URL + IMAGE_URL).replace(/%s/, $OPTION.text()))
+            }
+
+            console.warn('option:', idx, $OPTION)
+        });
+
+        $('#category').selectpicker();
+
         function displayImage(input, frameId) {
             const frame = document.getElementById(frameId);
             if (input.files && input.files[0]) {
