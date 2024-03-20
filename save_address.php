@@ -7,6 +7,10 @@ $username = "root";
 $password = "";
 $dbname = "swapseeker";
 
+$Style = 'style="border:none;outline:none;text-align:center"';
+$Style2 = 'style="border:none;outline:none;display:block;"';
+$Style3 = 'style="margin-bottom:10px;display:block;"';
+
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -15,22 +19,58 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Check if user is logged in and get the user ID
 $userID = isset($_SESSION["uid"]) ? $_SESSION["uid"] : null;
 
-$editMode = false;
+// Check if user ID is available
+if (!$userID) {
+    echo "User ID not found. Please log in.";
+    exit;
+}
 
-// Retrieve only visible user products from the database
-if ($userID) {
-    $query = "SELECT * FROM userdetails WHERE userid = $userID";
-    $result = $conn->query($query);
+// Retrieve address details based on the user ID
+$query = "SELECT * FROM userdetails WHERE userid = $userID";
+$result = $conn->query($query);
 
-    if ($result && $result->num_rows > 0) {
-        $userDetails = $result->fetch_all(MYSQLI_ASSOC);
+$addressDetails = array(); // Initialize an array to store address details
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $addressDetails[] = $row; // Store each address detail in the array
+    }
+} else {
+    echo "No addresses found.";
+    exit;
+}
+
+
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Retrieve form data
+    $name = $_POST["name"];
+    $email = $_POST["email"];
+    $mobile = $_POST["mobile"];
+    $addressone = $_POST["addressone"];
+    $addresstwo = $_POST["addresstwo"];
+    // $country = $_POST["country"];
+    $city = $_POST["city"];
+    $state = $_POST["state"];
+    $addressID = $_POST["address_id"];
+
+    // Update address details in the database
+    $updateQuery = "UPDATE userdetails SET name='$name', email='$email', mobile='$mobile', addressone='$addressone', addresstwo='$addresstwo', city='$city', state='$state' WHERE userid=$userID AND id=$addressID";
+
+    if ($conn->query($updateQuery) === TRUE) {
+        echo "Address details updated successfully.";
+    } else {
+        echo "Error updating address details: " . $conn->error;
     }
 }
+
+
 ?>
 
-<!-- Main Product Display Start -->
+<!-- Edit Address Form within Table -->
 <div class="container-fluid">
     <div class="row px-xl-5">
         <div class="col-lg-12 table-responsive mb-5">
@@ -40,40 +80,43 @@ if ($userID) {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Mobile.no</th>
-                    <th>Street-1</th>
-                    <th>Street-2</th>
-                    <th>Country</th>
-                    <th>City</th>
+                    <th>Address</th>
                     <th>State</th>
                     <th>Actions</th> <!-- Add a new column for actions -->
                 </thead>
                 <tbody class="align-middle">
-                    <?php
-                    if (isset($userDetails) && is_array($userDetails)) {
-                        foreach ($userDetails as $details) {
-                            echo "<tr>";
-                            echo "<td class='align-middle'>{$details['name']}</td>";
-                            echo "<td class='align-middle'>{$details['email']}</td>";
-                            echo "<td class='align-middle'>{$details['mobile']}</td>";
-                            echo "<td class='align-middle'>{$details['addressone']}</td>";
-                            echo "<td class='align-middle'>{$details['addresstwo']}</td>";
-                            echo "<td class='align-middle'>{$details['country']}</td>";
-                            echo "<td class='align-middle'>{$details['city']}</td>";
-                            echo "<td class='align-middle'>{$details['state']}</td>";
-                            echo "<td class='align-middle'>";
-                            echo "<a href='edit_address.php?id={$details['id']}' class='btn btn-primary btn-sm mr-2'>Edit</a>"; // Edit button
-                            echo "<a href='delete_address.php?id={$details['id']}' class='btn btn-danger btn-sm'><i class='fas fa-trash'></i></a>"; // Delete icon
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='7'>No visible Saved Address found for the user.</td></tr>";
-                    }
-                    ?>
+                    <?php foreach ($addressDetails as $address): ?>
+                    <tr>
+                        <form method="post">
+                            <input type="hidden" name="address_id" value="<?php echo $address['id']; ?>">
+                            <td><input type="text" name="name" <?php echo isset($_POST['edit'.$address['id']]) ? '' : $Style; ?> value="<?php echo $address['name']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>></td>
+                            <td><input type="email" name="email" <?php echo isset($_POST['edit'.$address['id']]) ? '' : $Style; ?> value="<?php echo $address['email']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>></td>
+                            <td><input type="text" name="mobile" <?php echo isset($_POST['edit'.$address['id']]) ? '' : $Style; ?> value="<?php echo $address['mobile']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>></td>
+                            <td>
+                                <input type="text" name="addressone" <?php echo isset($_POST['edit'.$address['id']]) ? $Style3 : $Style2; ?> value="<?php echo $address['addressone']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>>
+                                <input type="text" name="addresstwo" <?php echo isset($_POST['edit'.$address['id']]) ? $Style3 : $Style2; ?> value="<?php echo $address['addresstwo']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>>
+                                <input type="text" name="city" <?php echo isset($_POST['edit'.$address['id']]) ? $Style3 : $Style2; ?> value="<?php echo $address['city']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>>
+                            </td>
+                            <td><input type="text" name="state" <?php echo isset($_POST['edit'.$address['id']]) ? '' : $Style; ?> value="<?php echo $address['state']; ?>" <?php echo isset($_POST['edit'.$address['id']]) ? '' : 'readonly'; ?>></td>
+                            <td>
+                                <?php if(isset($_POST['edit'.$address['id']])): ?>
+                                    
+                                    <input type="submit" name="edit<?php echo $address['id']; ?>" value="Save" class="btn btn-primary">
+                                <?php else: ?>
+                                    <input type="submit" name="edit<?php echo $address['id']; ?>" value="Edit" class="btn btn-primary">
+                                <?php endif; ?>
+                            </td>
+                        </form>
+                    </tr>
+                 
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-<!-- Main Product Display End -->
 
+<?php
+$conn->close();
+
+?>

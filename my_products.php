@@ -1,4 +1,3 @@
-
 <?php
 include "includes/header.php";
 
@@ -8,6 +7,10 @@ $username = "root";
 $password = "";
 $dbname = "swapseeker";
 
+$Style = 'style="border:none;outline:none;text-align:center"';
+$Style2 = 'style="border:none;outline:none;display:block;"';
+$Style3 = 'style="margin-bottom:10px;display:block;"';
+
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -16,26 +19,69 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+
 $userID = isset($_SESSION["uid"]) ? $_SESSION["uid"] : null;
 
-$editMode = false;
+// Check if user ID is available
+if (!$userID) {
+    echo "User ID not found. Please log in.";
+    exit;
+}
 
-// Handle form submission for visibility updates
+// Retrieve address details based on the user ID
+$query = "SELECT * FROM userdetails WHERE userid = $userID";
+$result = $conn->query($query);
+
+$addressDetails = array(); // Initialize an array to store address details
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $addressDetails[] = $row; // Store each address detail in the array
+    }
+} else {
+    echo "No addresses found.";
+    exit;
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $newVisibility = $_POST['visibility'] == 'true' ? 1 : 0;
-    $productId = $_POST['productId'];
+    if(isset($_POST['edit'])) {
+        $productId = $_POST['productId'];
+        $productName = $_POST['name'];
+        $category = $_POST['category'];
+        $age = $_POST['age'];
+        $price = $_POST['price'];
+        $description = $_POST['description'];
+        $sellRent = $_POST['sell_rent'];
+        $visibility = isset($_POST['visibility']) ? ($_POST['visibility'] == 'true' ? 1 : 0) : 0;
 
-    // Update visibility in the database
-    $updateQuery = "UPDATE add_product SET visibility = $newVisibility WHERE id = $productId";
-    if ($conn->query($updateQuery)) {
-        echo "Visibility updated successfully.";
-    } else {
-        echo "Error updating visibility: " . $conn->error;
+        // Update product details in the database
+        $updateQuery = "UPDATE add_product SET product_name = '$productName', category = '$category', product_age = '$age', price = '$price', description = '$description', sell_rent = '$sellRent', visibility = $visibility WHERE id = $productId";
+        if ($conn->query($updateQuery)) {
+            echo "Product details updated successfully.";
+        } else {
+            echo "Error updating product details: " . $conn->error;
+        }
+    }
+
+    if(isset($_POST['delete'])) {
+        $deleteProductId = $_POST['deleteProductId'];
+
+        // Delete product from the database
+        $deleteQuery = "DELETE FROM add_product WHERE id = $deleteProductId";
+        if ($conn->query($deleteQuery)) {
+            echo "Product deleted successfully.";
+            // Refresh the page or update the product list
+            header("Location: {$_SERVER['REQUEST_URI']}");
+            exit;
+        } else {
+            echo "Error deleting product: " . $conn->error;
+        }
     }
 }
 
 
-// Retrieve only visible user products from the database
+// Retrieve user's products from the database
 if ($userID) {
     $query = "SELECT * FROM add_product WHERE user_id = $userID";
     $result = $conn->query($query);
@@ -44,63 +90,71 @@ if ($userID) {
         $userProducts = $result->fetch_all(MYSQLI_ASSOC);
     }
 }
+
 ?>
 
-<!-- Main Product Display Start -->
+<!-- Edit Address Form within Table -->
 <div class="container-fluid">
     <div class="row px-xl-5">
         <div class="col-lg-12 table-responsive mb-5">
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">My Products</span></h5>
             <table class="table table-light table-borderless table-hover text-center mb-0">
                 <thead class="thead-dark">
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Age</th>
-                    <th>Price</th>
-                    <th>Description</th>
-                    <th>Sell/Rent</th>
-                    <th>Available</th>
-                    <!-- <th>Remove</th>
-                    <th>Edit</th> -->
-                    <!-- Add more columns as needed -->
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Age</th>
+                        <th>Price</th>
+                        <th>Description</th>
+                        <th>Sell/Rent</th>
+                        <th>Visibility</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
                 </thead>
                 <tbody class="align-middle">
-                    <?php
-                    if (isset($userProducts) && is_array($userProducts)) {
-                        foreach ($userProducts as $product) {
-                            echo "<tr>";
-                            echo "<td class='align-middle'><img src='img/" . explode(',', $product['image_name'])[0] . "' alt='' style='width: 50px;'> {$product['product_name']}</td>";
-                            echo "<td class='align-middle'>{$product['category']}</td>";
-                            echo "<td class='align-middle'>{$product['product_age']}</td>";
-                            echo "<td class='align-middle'>{$product['price']}</td>";
-                            echo "<td class='align-middle'>{$product['description']}</td>";
-                            echo "<td class='align-middle'>{$product['sell_rent']}</td>";
-                            echo "<td class='align-middle'>";
-                            echo "<form method='post' action=''>";  // Add form element
-                            echo "<select class='visibility-dropdown' name='visibility'>"; 
+                    <?php foreach ($userProducts as $product): ?>
+                        <tr>
+                            <form method="post">
+                                <input type="hidden" name="productId" value="<?php echo $product['id']; ?>">
+                                <td><input type="text" name="name" <?php echo isset($_POST['edit'.$product['id']]) ? '' : $Style; ?> value="<?php echo $product['product_name']; ?>" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'readonly'; ?>></td>
+                                <td><input type="text" name="category" <?php echo isset($_POST['edit'.$product['id']]) ? '' : $Style; ?> value="<?php echo $product['category']; ?>" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'readonly'; ?>></td>
+                                <td><input type="text" name="age" <?php echo isset($_POST['edit'.$product['id']]) ? '' : $Style; ?> value="<?php echo $product['product_age']; ?>" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'readonly'; ?>></td>
+                                <td><input type="text" name="price" <?php echo isset($_POST['edit'.$product['id']]) ? '' : $Style; ?> value="<?php echo $product['price']; ?>" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'readonly'; ?>></td>
+                                <td><input type="text" name="description" <?php echo isset($_POST['edit'.$product['id']]) ? '' : $Style; ?> value="<?php echo $product['description']; ?>" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'readonly'; ?>></td>
+                                <td><input type="text" name="sell_rent" <?php echo isset($_POST['edit'.$product['id']]) ? '' : $Style; ?> value="<?php echo $product['sell_rent']; ?>" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'readonly'; ?>></td>
+                                <td>
+                                    <select name="visibility" <?php echo isset($_POST['edit'.$product['id']]) ? '' : 'disabled'; ?>>
+                                        <option value='true' <?php echo $product['visibility'] ? 'selected' : ''; ?>>Active</option>
+                                        <option value='false' <?php echo !$product['visibility'] ? 'selected' : ''; ?>>Inactive</option>
+                                    </select>
+                                </td>
 
-                            $visibleOption = $product['visibility'] ? 'active' : 'active';
-                            $invisibleOption = $product['visibility'] ? 'inactive' : 'inactive';
 
-                            echo "<option value='true' " . ($product['visibility'] ? 'selected' : '') . ">$visibleOption</option>";
-                            echo "<option value='false' " . (!$product['visibility'] ? 'selected' : '') . ">$invisibleOption</option>";
-
-                            echo "</select>";
-                            echo "<input type='hidden' name='productId' value='{$product['id']}'>";  
-                            echo "<input type='submit' class='btn btn-primary' value='Save'>";  // Add submit button
-                            echo "</form>";
-                            echo "</td>";
-
-                            // echo "<td class='align-middle'><button class='btn btn-sm btn-danger'><i class='fa fa-times'></i></button></td>";
-                            // echo "<td><button class='btn btn-success py-2 px-4' type='submit' id='saveChanges' name='saveChanges'>Edit</button></td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='7'>No visible products found for the user.</td></tr>";
-                    }
-                    ?>
+                                <td>
+                                    <?php if(isset($_POST['edit'.$product['id']])): ?>
+                                        <input type="submit" name="edit" value="Save" class="btn btn-primary">
+                                    <?php else: ?>
+                                        <input type="submit" name="edit<?php echo $product['id']; ?>" value="Edit" class="btn btn-primary">
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <form method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                        <input type="hidden" name="deleteProductId" value="<?php echo $product['id']; ?>">
+                                        <button type="submit" name="delete" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt"></i> 
+                                        </button>
+                                    </form>
+                                </td>
+                            </form>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-<!-- Main Product Display End -->
+
+<?php
+$conn->close();
+?>

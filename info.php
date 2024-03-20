@@ -331,6 +331,13 @@ if (isset($_POST['report_submit'])) {
                 <?php
             }
             ?>
+            
+            <!-- WhatsApp Chat Button -->
+            <a href="https://api.whatsapp.com/send?phone=<?php echo $phone; ?>" target="_blank" class="whatsapp-icon-link">
+                
+                <img src="img/whatsapp-icon.png" alt="WhatsApp Chat" class="whatsapp-icon" style="width: 40px; height: 40px;">
+                <span >Chat with WhatsApp</span>
+            </a>
         </div>
 
         <div class="padding-box">

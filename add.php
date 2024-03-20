@@ -165,6 +165,7 @@ include "includes/header.php";
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    
     <script src="js/script.js"></script>
     <script>
         function displayImage(input, frameId) {

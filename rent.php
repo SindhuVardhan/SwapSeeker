@@ -171,6 +171,17 @@ function displayProducts($conn, $sell_rent, $sectionTitle) {
 
         echo '</div>';
         echo '</div>';
+    } else {
+        // Display the image when no rental products are found
+        echo '<div class="container-fluid pt-5">';
+        echo "<h2 class='section-title position-relative text-uppercase mx-xl-5 mb-4'><span class='bg-secondary pr-3'>$sectionTitle</span></h2>";
+        echo '<div class="row px-xl-5 justify-content-center">';
+        echo '<div class="col-lg-6 text-center">';
+        echo '<img src="img/norent.jpg" alt="No rental products" class="img-fluid">';
+        echo '<p class="mt-3">Sorry, No Rental Items Found</p>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
     }
 }
 

@@ -277,11 +277,31 @@
                 <?php
             }
             ?>
+            
+            <!-- WhatsApp Chat Button -->
+            <a href="https://api.whatsapp.com/send?phone=<?php echo $phone; ?>" target="_blank" class="whatsapp-icon-link">
+                
+                <img src="img/whatsapp-icon.png" alt="WhatsApp Chat" class="whatsapp-icon" style="width: 40px; height: 40px;">
+                <span >Chat with WhatsApp</span>
+            </a>
         </div>
+
         <div class="padding-box">
-            <h2>Make an Offer</h2><br>
-            <button class="btn btn-primary open-inquiry-modal" data-target="#inquiryModal">Chat</button>
-        </div>
+    <h2>Report This Product</h2><br>
+    <?php
+    if (isset($_SESSION['uid']) && $_SESSION['uid']) {
+        // User is logged in, show report button
+        ?>
+        <button class="btn btn-danger open-report-modal">Report</button>
+        <?php
+    } else {
+        // User is not logged in, show message to login
+        ?>
+        <p><b>Please login to report this product.</b></p>
+        <a href="login.php" class="btn btn-primary">Login</a>
+        <?php
+    }
+    ?>
     </div>
 </div>
 
